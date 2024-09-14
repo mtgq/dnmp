@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <link href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/normalize/8.0.1/normalize.min.css" type="text/css"
+          rel="stylesheet"/>
+
+    <style>
+        .container {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .video-container {
+            object-fit: cover;
+            width: 100%;
+            height: 100%
+        }
+
+        .title-container {
+            color: #ffffff;
+            position: absolute;
+            top: 50%;
+            left: 30%;
+        }
+
+        .foot-container {
+            position: fixed;
+            bottom: 0;
+            text-align: center;
+            width: 100%;
+            color: #ffffff;
+        }
+
+        .foot-container a {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .foot-container img {
+            width: 16px;
+            vertical-align: middle;
+        }
+
+        .foot-container .line {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <video class="video-container" autoplay loop>
+        <source src="./bg-video.mp4" type="video/mp4"/>
+    </video>
+
+    <div class="title-container">
+        We received a request to update the password for Docker ID: 2580839896
+        To reset your password, click the link below
+    </div>
+
+    <div class="foot-container">
+        <p>
+            <a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备2024086892号-1</a>
+            <a href="https://beian.mps.gov.cn/#/query/webSearch?code=41138102000309" rel="noreferrer" target="_blank">
+                <img src="https://img.alicdn.com/tfs/TB1..50QpXXXXX7XpXXXXXXXXXX-40-40.png"/>
+                豫公网安备41138102000309号
+            </a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

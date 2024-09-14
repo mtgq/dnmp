@@ -1,0 +1,175 @@
+services:
+
+  ### Redis ################################################
+  redis:
+    restart: always
+    build: ./services/redis
+    container_name: redis
+    volumes:
+      - ${DATA_DIR}/redis:/data/:rw
+    command: --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT}:6379"
+    environment:
+      TZ: "$TZ"
+    networks:
+      - default
+
+  ### NGINX Server #########################################
+  nginx:
+    build:
+      context: ./services/nginx
+      args:
+        CONTAINER_PACKAGE_URL: ${CONTAINER_PACKAGE_URL}
+    container_name: nginx
+    ports:
+      - "${NGINX_HTTP_HOST_PORT}:80"
+      - "${NGINX_HTTPS_HOST_PORT}:443"
+    volumes:
+      - ${SOURCE_DIR}:/var/www/:rw
+      - ${NGINX_SSL_CERTIFICATE_DIR}:/etc/nginx/ssl:rw
+      - ${NGINX_SITES_PATH}:/etc/nginx/conf.d/:rw
+      - ${NGINX_LOG_DIR}:/var/log/nginx/:rw
+    environment:
+      TZ: "$TZ"
+    restart: always
+    depends_on:
+      - php56
+    labels:
+      - sh.acme.autoload.domain
+    networks:
+      - default
+
+  ### acme.sh ################################################
+  acme.sh:
+    image: neilpang/acme.sh
+    container_name: acme.sh
+    command:
+      - "sh"
+      - "-c"
+      - |
+        export DP_Id="${DP_Id}";
+        export DP_Key="${DP_Key}";
+        acme.sh --set-default-ca --server ${CA_SERVER} && \
+        acme.sh --register-account --server ${CA_SERVER} --eab-kid ${EAB_KID} --eab-hmac-key ${EAB_HMAC_KEY} && \
+        acme.sh --issue -d "${DOMAIN_NAME}"  -d "*.${DOMAIN_NAME}" --dns "${DNS_API}" --force --yes-I-know-dns-manual-mode-enough-go-ahead-please && \
+        acme.sh --deploy -d "${DOMAIN_NAME}" --deploy-hook docker && \
+        crond -n -s -m off
+    networks:
+      - default
+    environment:
+      - DEPLOY_DOCKER_CONTAINER_LABEL=sh.acme.autoload.domain
+      - DEPLOY_DOCKER_CONTAINER_KEY_FILE=/etc/nginx/ssl/mtgq.top/key.pem
+      - DEPLOY_DOCKER_CONTAINER_CERT_FILE="/etc/nginx/ssl/mtgq.top/cert.pem"
+      - DEPLOY_DOCKER_CONTAINER_CA_FILE="/etc/nginx/ssl/mtgq.top/ca.pem"
+      - DEPLOY_DOCKER_CONTAINER_FULLCHAIN_FILE="/etc/nginx/ssl/mtgq.top/full.pem"
+      - DEPLOY_DOCKER_CONTAINER_RELOAD_CMD="service nginx force-reload"
+    volumes:
+      - ${DATA_DIR}/acmeout:/acme.sh:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  ### MySQL 5.6 ###########################################
+  mysql56:
+    build:
+      context: ./services/mysql
+      args:
+        - MYSQL_VERSION=${MYSQL56_VERSION}
+    container_name: mysql56
+    ports:
+      - "${MYSQL56_HOST_PORT}:3306"
+    volumes:
+      - ${MYSQL56_CONF_FILE}:/etc/mysql/conf.d/my.cnf:ro
+      - ${DATA_DIR}/mysql56:/var/lib/mysql
+      - ${MYSQL56_LOG_DIR}:/var/log/mysql/:rw
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL56_ROOT_PASSWORD}"
+      MYSQL_ROOT_HOST: "${MYSQL56_ROOT_HOST}"
+      TZ: "$TZ"
+    networks:
+      - default
+
+  ### MySQL 5.7 ###########################################
+  mysql57:
+    build:
+      context: ./services/mysql
+      args:
+        - MYSQL_VERSION=${MYSQL57_VERSION}
+    container_name: mysql57
+    ports:
+      - "${MYSQL57_HOST_PORT}:3306"
+    volumes:
+      - ${MYSQL57_CONF_FILE}:/etc/mysql/conf.d/my.cnf:ro
+      - ${DATA_DIR}/mysql57:/var/lib/mysql/:rw
+      - ${MYSQL57_LOG_DIR}:/var/log/mysql/:rw
+      - ${MYSQL57_ENTRYPOINT_INITDB}:/docker-entrypoint-initdb.d
+    restart: always
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL57_ROOT_PASSWORD}"
+      MYSQL_ROOT_HOST: "${MYSQL57_ROOT_HOST}"
+      TZ: "$TZ"
+
+  ### PHP 5.6 ###########################################
+  php56:
+    build:
+      context: ./services/php
+      args:
+        LARADOCK_PHP_VERSION: ${PHP56_VERSION}
+    container_name: php56
+    volumes:
+      - ${SOURCE_DIR}:/var/www/:rw
+      - ${PHP56_CONF_FILE}:/usr/local/etc/php/php.ini:ro
+      - ${PHP56_LOG_DIR}:/var/log/php
+      - ${DATA_DIR}/composer:/tmp/composer
+    environment:
+      TZ: "$TZ"
+    restart: always
+    networks:
+      - default
+
+  ### PHP 7.0 ###########################################
+  php70:
+    build:
+      context: ./services/php
+      args:
+        LARADOCK_PHP_VERSION: ${PHP70_VERSION}
+    container_name: php70
+    volumes:
+      - ${SOURCE_DIR}:/var/www/:rw
+      - ${PHP70_CONF_FILE}:/usr/local/etc/php/php.ini:ro
+      - ${PHP70_LOG_DIR}:/var/log/php
+      - ${DATA_DIR}/composer:/tmp/composer
+    environment:
+      TZ: "$TZ"
+    restart: always
+    networks:
+      - default
+
+  ### PHP 8.2 ###########################################
+  php82:
+    build:
+      context: ./services/php
+      args:
+        LARADOCK_PHP_VERSION: ${PHP82_VERSION}
+    container_name: php82
+    volumes:
+      - ${SOURCE_DIR}:/var/www/:rw
+      - ${PHP82_CONF_FILE}:/usr/local/etc/php/php.ini:ro
+      - ${PHP82_LOG_DIR}:/var/log/php
+      - ${DATA_DIR}/composer:/tmp/composer
+    environment:
+      TZ: "$TZ"
+    restart: always
+    networks:
+      - default
+
+################################################################################
+# NETWORK
+################################################################################
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN">
+<head>
+    <meta charset="utf-8">
+    <title>Zepp Life 刷步数</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="keywords" content="蒙太古其 Zepp Life 刷步数">
+    <meta name="description" content="蒙太古其 Zepp Life 刷步数,小米运动,Zepp Life,刷步数">
+    <link rel="shortcut icon" href="__CDN__/assets/img/favicon.ico"/>
+    <link href="__CDN__/assets/libs/layui/css/layui.css" rel="stylesheet">
+    <style>
+        .t-container {
+            height: 100vh;
+            background: #F7F7F7;
+        }
+
+        .t-login {
+            padding-top: 50px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .login-head {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .login-head img {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="t-container">
+    <div class="t-login">
+        <div class="login-head">
+            <img src="__CDN__/assets/img/login-head.png"/>
+        </div>
+        <form class="layui-form">
+            <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-username"></i>
+                    </div>
+                    <input type="text" name="username" value="" lay-verify="required"
+                           placeholder="请输入 Zepp Life 手机号/邮箱地址"
+                           lay-reqtext="请输入 Zepp Life 手机号/邮箱地址" autocomplete="off" class="layui-input"
+                           lay-affix="clear">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-password"></i>
+                    </div>
+                    <input type="password" name="password" value="" lay-verify="required"
+                           placeholder="请输入 Zepp Life 密码"
+                           lay-reqtext="请输入 Zepp Life 密码" autocomplete="off" class="layui-input" lay-affix="eye">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-test"></i>
+                    </div>
+                    <input type="number" name="step" value="" lay-verify="required" placeholder="运动步数 1 ~ 98800 之间"
+                           lay-reqtext="请输入步数" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <input type="checkbox" name="remember" lay-skin="primary" title="记住密码">
+                <a href="#forget" style="float: right; margin-top: 7px;">使用帮助？</a>
+            </div>
+            <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="btn-login">开始刷步</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="__CDN__/assets/libs/layui/layui.js"></script>
+<script>
+    getCookie()
+
+    function getCookie() {
+        const localUserInfo = layui.data('userinfo');
+        const username = localUserInfo.username;
+        const password = localUserInfo.password;
+        const remember = localUserInfo.remember;
+
+        if (username) {
+            document.querySelector('input[name="username"]').value = username;
+        }
+        if (password) {
+            document.querySelector('input[name="password"]').value = password;
+        }
+        if (remember) {
+            document.querySelector('input[name="remember"]').checked = true;
+        }
+    }
+
+    layui.use(['form', 'jquery',], function () {
+        const form = layui.form;
+        const $ = layui.$;
+        const layer = layui.layer;
+        // 提交事件
+        form.on('submit(btn-login)', function (data) {
+            const field = data.field; // 获取表单字段值
+            if (field.remember) {
+                layui.data('userinfo', {key: 'username', value: field.username});
+                layui.data('userinfo', {key: 'password', value: field.password});
+                layui.data('userinfo', {key: 'remember', value: field.remember});
+            } else {
+                layui.data('userinfo', null);
+            }
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url: "{:url('/home/login')}",
+                type: "POST",
+                data: field,
+                beforeSend() {
+                    layer.msg('加载中', {icon: 16, shade: 0.01});
+                },
+                success(ret) {
+                    layer.closeAll();
+                    if (ret.code === 0) {
+                        // 成功提示信息
+                        layer.msg(ret.msg, {icon: 5});
+                    } else {
+                        layer.msg(ret.msg, {icon: 6});
+                    }
+                    return false;
+                }
+            });
+            return false; // 阻止默认 form 跳转
+        });
+    });
+</script>
+</body>
+</html>
