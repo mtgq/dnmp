@@ -1,0 +1,168 @@
+services:
+  ### NGINX Server #########################################
+  nginx:
+    build:
+      context: ./services/nginx
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${NGINX_CONFD_DIR}:/etc/nginx/conf.d
+      - ${NGINX_CONF_FILE}:/etc/nginx/nginx.conf
+      - ${NGINX_FASTCGI_PHP_CONF}:/etc/nginx/fastcgi-php.conf
+      - ${NGINX_FASTCGI_PARAMS}:/etc/nginx/fastcgi_params
+      - ${NGINX_LOG_DIR}:/var/log/nginx
+    restart: always
+    networks:
+      - default
+  ### PHP8.2 #########################################
+  php82:
+    build:
+      context: ./services/php
+      args:
+        - COMPOSER_VERSION=${PHP82_COMPOSER_VERSION}
+        - PHP_EXTENSIONS=${PHP82_EXTENSIONS}
+        - PHP_VERSION=${PHP82_VERSION}
+        - TZ=${TZ}
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    container_name: php82
+    expose:
+      - "9000"
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ./services/php/php${PHP82_VERSION}.ini:/usr/local/etc/php/php.ini
+      - ${PHP82_DATA_COMPOSER}:/tmp/composer
+    restart: always
+    networks:
+      - default
+  ### PHP7.4 #########################################
+  php74:
+    build:
+      context: ./services/php
+      args:
+        - COMPOSER_VERSION=${PHP74_COMPOSER_VERSION}
+        - PHP_EXTENSIONS=${PHP74_EXTENSIONS}
+        - PHP_VERSION=${PHP74_VERSION}
+        - TZ=${TZ}
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    container_name: php74
+    expose:
+      - "9000"
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ./services/php/php${PHP74_VERSION}.ini:/usr/local/etc/php/php.ini
+      - ${PHP74_DATA_COMPOSER}:/tmp/composer
+    restart: always
+    networks:
+      - default
+  ### PHP5.6 #########################################
+  php56:
+    build:
+      context: ./services/php
+      args:
+        - COMPOSER_VERSION=${PHP56_COMPOSER_VERSION}
+        - PHP_EXTENSIONS=${PHP56_EXTENSIONS}
+        - PHP_VERSION=${PHP56_VERSION}
+        - TZ=${TZ}
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    container_name: php56
+    expose:
+      - "9000"
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ./services/php/php${PHP56_VERSION}.ini:/usr/local/etc/php/php.ini
+      - ${PHP56_DATA_COMPOSER}:/tmp/composer
+    restart: always
+    networks:
+      - default
+  ### MySQL5.7 ################################################
+  mysql57:
+    image: 'bitnami/mysql:5.7'
+    container_name: mysql57
+    ports:
+      - "3307:3306"
+    volumes:
+      - ${DATA_PATH_HOST}/mysql57:/bitnami/mysql/data
+      - ${MYSQL57_LOG_DIR}:/bitnami/mysql/logs
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_CHARACTER_SET=utf8mb4
+      - MYSQL_COLLATE=utf8mb4_general_ci
+      - MYSQL_SQL_MODE="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+      - MYSQL_ENABLE_SLOW_QUERY=1
+      - MYSQL_LONG_QUERY_TIME=3
+      - MYSQL_EXTRA_FLAGS=--default-time-zone=+8:00
+    restart: always
+    networks:
+      - default
+  ### Redis ################################################
+  redis:
+    build:
+      context: ./services/redis
+    container_name: redis
+    volumes:
+      - ${DATA_PATH_HOST}/redis:/data
+    command: --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT}:6379"
+    restart: always
+    networks:
+      - default
+  ### REDISWEBUI ################################################
+  redis-webui:
+    restart: always
+    image: 'erikdubbelboer/phpredisadmin:latest'
+    container_name: redis-webui
+    environment:
+      - REDIS_1_HOST=${REDIS_WEBUI_CONNECT_HOST}
+      - REDIS_1_PORT=${REDIS_WEBUI_CONNECT_PORT}
+      - REDIS_1_AUTH=${REDIS_PASSWORD}
+      - TZ=${TZ}
+    networks:
+      - default
+    ports:
+      - "9987:80"
+    depends_on:
+      - redis
+  ### NVM ################################################
+  nvm:
+    restart: always
+    build:
+      context: ./services/nvm
+      args:
+        - LARADOCK_PHP_VERSION=${LARADOCK_WORKSPACE_VERSION}
+        - NPM_REGISTRY=${WORKSPACE_NPM_REGISTRY}
+        - NVM_NODEJS_ORG_MIRROR=${WORKSPACE_NVM_NODEJS_ORG_MIRROR}
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    container_name: nvm
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - default
+    ports:
+      - "8001:8001"
+  debian:
+    image: debian:latest
+    networks:
+      - default
+    stdin_open: true
+    tty: true
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default

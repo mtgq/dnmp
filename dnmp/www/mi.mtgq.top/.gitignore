@@ -1,5 +1,0 @@
-.idea
-.vscode
-/vendor/
-/runtime/*
-composer.lock
