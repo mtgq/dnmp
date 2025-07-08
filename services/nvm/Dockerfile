@@ -1,49 +1,34 @@
-ARG LARADOCK_PHP_VERSION
-FROM laradock/workspace:latest-${LARADOCK_PHP_VERSION}
+FROM debian:latest
+
+ARG NODE_VERSION
+ENV NVM_DIR=/root/.nvm
 
 # Set Environment Variables
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Start as root
-USER root
+RUN set -eux; \
+    apt-get update; \
+    apt-get upgrade -y; \
+    apt-get install -y --no-install-recommends \
+            curl \
+            ca-certificates; \
+    rm -rf /var/lib/apt/lists/*
 
-###########################################################################
-# Node / NVM:
-###########################################################################
-
-ARG NODE_VERSION=node
-ENV NODE_VERSION ${NODE_VERSION}
-ARG INSTALL_NODE=true
-ARG NPM_REGISTRY
-ENV NPM_REGISTRY ${NPM_REGISTRY}
-ENV NVM_DIR /root/.nvm
-ARG NVM_NODEJS_ORG_MIRROR
-ENV NVM_NODEJS_ORG_MIRROR ${NVM_NODEJS_ORG_MIRROR}
-
-RUN if [ ${INSTALL_NODE} = true ]; then \
-    # Install nvm (A Node Version Manager)
-    mkdir -p $NVM_DIR && \
+# install nvm
+RUN mkdir -p $NVM_DIR && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash \
-        && . $NVM_DIR/nvm.sh \
-        && nvm install ${NODE_VERSION} \
-        && nvm use ${NODE_VERSION} \
-        && npm cache clear --force \
-        && if [ ${NPM_REGISTRY} ]; then \
-        npm config set registry ${NPM_REGISTRY} \
-        ;fi \
-;fi
+    && . $NVM_DIR/nvm.sh \
+    && nvm install ${NODE_VERSION} \
+    && nvm use ${NODE_VERSION} \
+    && nvm alias ${NODE_VERSION} \
+    && npm cache clear --force \
+    && npm install -g pnpm
 
 # Wouldn't execute when added to the RUN statement in the above block
 # Source NVM when loading bash since ~/.profile isn't loaded on non-login shell
-RUN if [ ${INSTALL_NODE} = true ]; then \
-    echo "" >> ~/.bashrc && \
+RUN echo "" >> ~/.bashrc && \
     echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc \
-;fi
-
-RUN if [ ${NPM_REGISTRY} ]; then \
-    . ~/.bashrc && npm config set registry ${NPM_REGISTRY} \
-;fi
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc
 
 ###########################################################################
 # YARN:
@@ -64,18 +49,8 @@ RUN if [ ${INSTALL_YARN} = true ]; then \
     echo 'export PATH="$HOME/.yarn/bin:$PATH"' >> ~/.bashrc \
 ;fi
 
-#
-#--------------------------------------------------------------------------
-# Final Touch
-#--------------------------------------------------------------------------
-#
-
-USER root
-
 # Clean up
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    rm -f /var/log/lastlog /var/log/faillog
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set default work directory
 WORKDIR /var/www

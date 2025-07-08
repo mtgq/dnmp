@@ -136,25 +136,44 @@ services:
       - "9987:80"
     depends_on:
       - redis
-  ### NVM ################################################
-  nvm:
+  ### NODE22 ################################################
+  node22:
     restart: always
     build:
       context: ./services/nvm
       args:
-        - LARADOCK_PHP_VERSION=${LARADOCK_WORKSPACE_VERSION}
-        - NPM_REGISTRY=${WORKSPACE_NPM_REGISTRY}
-        - NVM_NODEJS_ORG_MIRROR=${WORKSPACE_NVM_NODEJS_ORG_MIRROR}
+        - NODE_VERSION=22
         - http_proxy
         - https_proxy
         - no_proxy
-    container_name: nvm
+    container_name: node22
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-    networks:
-      - default
     ports:
       - "8001:8001"
+    stdin_open: true
+    tty: true
+    networks:
+      - default
+  ### NODE16 ################################################
+  node16:
+    restart: always
+    build:
+      context: ./services/nvm
+      args:
+        - NODE_VERSION=16
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    container_name: node16
+    volumes:
+      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    ports:
+      - "8080:8080"
+    stdin_open: true
+    tty: true
+    networks:
+      - default
   debian:
     image: debian:latest
     networks:
