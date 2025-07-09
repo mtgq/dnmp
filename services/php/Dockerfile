@@ -1,38 +1,146 @@
 ARG PHP_VERSION
-FROM php:${PHP_VERSION}-fpm
+FROM laradock/php-fpm:latest-${PHP_VERSION}
 
 ARG TZ
+ARG PHP_VERSION
 ARG PHP_EXTENSIONS
 
 ENV TZ=${TZ}
 
 # Set Environment Variables
 ENV DEBIAN_FRONTEND noninteractive
+# always run apt update when start and after add new source list, then clean up at end.
+RUN set -xe; \
+    apt-get update -yqq && \
+    pecl channel-update pecl.php.net && \
+    apt-get install -yqq \
+      apt-utils \
+      gnupg2 \
+      git \
+      #
+      #--------------------------------------------------------------------------
+      # Mandatory Software's Installation
+      #--------------------------------------------------------------------------
+      #
+      # Mandatory Software's such as ("mcrypt", "pdo_mysql", "libssl-dev", ....)
+      # are installed on the base image 'laradock/php-fpm' image. If you want
+      # to add more Software's or remove existing one, you need to edit the
+      # base image (https://github.com/Laradock/php-fpm).
+      #
+      # next lines are here becase there is no auto build on dockerhub see https://github.com/laradock/laradock/pull/1903#issuecomment-463142846
+      libzip-dev zip unzip && \
+      if [ ${PHP_VERSION} = "7.3" ] || [ ${PHP_VERSION} = "7.4" ] || [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
+        docker-php-ext-configure zip; \
+      else \
+        docker-php-ext-configure zip --with-libzip; \
+      fi && \
+      # Install the zip extension
+      docker-php-ext-install zip && \
+      php -m | grep -q 'zip'
+
+###########################################################################
+# pcntl
+###########################################################################
+ARG INSTALL_PCNTL=true
+
+RUN if [ ${INSTALL_PCNTL} = true ]; then \
+    docker-php-ext-install pcntl \
+;fi
+###########################################################################
+# ImageMagick:
+###########################################################################
+ARG INSTALL_IMAGEMAGICK=true
+ARG IMAGEMAGICK_VERSION=latest
+ENV IMAGEMAGICK_VERSION ${IMAGEMAGICK_VERSION}
+
+RUN if [ ${INSTALL_IMAGEMAGICK} = true ]; then \
+    apt-get update && \
+    apt-get install -yqq libmagickwand-dev imagemagick && \
+    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
+      cd /tmp && \
+      if [ ${IMAGEMAGICK_VERSION} = "latest" ]; then \
+        if [ ${PHP_VERSION} = "8.4" ]; then \
+          git clone --branch develop https://github.com/Imagick/imagick; \
+        else \
+          git clone https://github.com/Imagick/imagick; \
+        fi; \
+      else \
+        git clone --branch ${IMAGEMAGICK_VERSION} https://github.com/Imagick/imagick; \
+      fi && \
+      cd imagick && \
+      phpize && \
+      ./configure && \
+      make && \
+      make install && \
+      rm -r /tmp/imagick; \
+    else \
+      pecl install imagick; \
+    fi && \
+    docker-php-ext-enable imagick; \
+    php -m | grep -q 'imagick' \
+;fi
+###########################################################################
+# bcmath:
+###########################################################################
+ARG INSTALL_BCMATH=true
+
+RUN if [ ${INSTALL_BCMATH} = true ]; then \
+    # Install the bcmath extension
+    docker-php-ext-install bcmath \
+;fi
+###########################################################################
+# GETTEXT:
+###########################################################################
+ARG INSTALL_GETTEXT=true
+
+RUN if [ ${INSTALL_GETTEXT} = true ]; then \
+    apt-get install -yqq zlib1g-dev libicu-dev g++ libpq-dev libssl-dev gettext && \
+    docker-php-ext-install gettext \
+;fi
+###########################################################################
+# PHP REDIS EXTENSION
+###########################################################################
+ARG INSTALL_PHPREDIS=true
+
+RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
+    # Install Php Redis Extension
+    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+      pecl install -o -f redis-4.3.0; \
+    elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && { [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ] || [ $(php -r "echo PHP_MINOR_VERSION;") = "1" ] ;}; then \
+      pecl install -o -f redis-5.3.7; \
+    elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && { [ $(php -r "echo PHP_MINOR_VERSION;") = "2" ] || [ $(php -r "echo PHP_MINOR_VERSION;") = "3" ] ;}; then \
+      pecl install -o -f redis-6.0.2; \
+    else \
+      pecl install -o -f redis; \
+    fi \
+    && rm -rf /tmp/pear \
+    && docker-php-ext-enable redis \
+;fi
+###########################################################################
+# Human Language and Character Encoding Support:
+###########################################################################
+ARG INSTALL_INTL=true
+
+RUN if [ ${INSTALL_INTL} = true ]; then \
+    apt-get install -yqq zlib1g-dev libicu-dev g++ && \
+    docker-php-ext-configure intl && \
+    docker-php-ext-install intl \
+;fi
+###########################################################################
+# xlswriter:
+###########################################################################
+ARG INSTALL_XLSWRITER=true
 
 RUN set -eux; \
-    File_LinuxRelease=/etc/os-release; \
-    SYSTEM_VERSION_ID="$(cat $File_LinuxRelease | grep -E "^VERSION_ID=" | awk -F '=' '{print$2}' | sed "s/[\'\"]//g")"; \
-    SYSTEM_VERSION_ID_MAJOR="${SYSTEM_VERSION_ID%.*}"; \
-    if [ "$SYSTEM_VERSION_ID_MAJOR" = "8" ]; then \
-        RELEASE_CODENAME="jessie"; \
-    elif [ "$SYSTEM_VERSION_ID_MAJOR" = "9" ]; then \
-        RELEASE_CODENAME="stretch"; \
-    elif [ "$SYSTEM_VERSION_ID_MAJOR" = "10" ]; then \
-        RELEASE_CODENAME="buster"; \
-    fi; \
-    if [ "$SYSTEM_VERSION_ID_MAJOR" = "8" ] || [ "$SYSTEM_VERSION_ID_MAJOR" = "9" ] || [ "$SYSTEM_VERSION_ID_MAJOR" = "10" ]; then \
-        sed -i 's/^deb /# deb /g' /etc/apt/sources.list; \
-        echo "deb http://archive.debian.org/debian/ ${RELEASE_CODENAME} main contrib non-free" >> /etc/apt/sources.list; \
-        echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until; \
-        apt-get update -o Acquire::Check-Valid-Until=false; \
-        apt-get install -y --allow-unauthenticated debian-archive-keyring; \
-    fi; \
-    apt-get update; \
-    apt-get upgrade -y; \
-    apt-get install -y --no-install-recommends \
-            tzdata \
-            curl; \
-    rm -rf /var/lib/apt/lists/*
+    if [ ${INSTALL_XLSWRITER} = true ]; then \
+      if [ $(php -r "echo PHP_MAJOR_VERSION;") != "5" ]; then \
+          pecl install xlswriter  &&\
+          docker-php-ext-enable xlswriter &&\
+          php -m | grep -q 'xlswriter'; \
+      else \
+          echo "PHP Extension for xlswriter is not supported for PHP 5.0";\
+      fi \
+    ;fi
 
 # Install PHP extensions
 RUN curl -sSLf -o /usr/local/bin/install-php-extensions https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions \
@@ -59,13 +167,10 @@ COPY ./laravel.ini /usr/local/etc/php/conf.d
 COPY ./xlaravel.pool.conf /usr/local/etc/php-fpm.d/
 
 # Clean up
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    rm -f /var/log/lastlog /var/log/faillog
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Configure non-root user.
-RUN groupmod -o -g 1000 www-data && \
-    usermod -o -u 1000 -g www-data www-data
+RUN groupmod -o -g 1000 www-data && usermod -o -u 1000 -g www-data www-data
 
 # Set work directory
 WORKDIR /var/www

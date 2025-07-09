@@ -45,6 +45,7 @@ services:
       - default
   ### PHP7.4 #########################################
   php74:
+    platform: linux/amd64
     build:
       context: ./services/php
       args:
