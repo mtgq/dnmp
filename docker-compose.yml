@@ -90,7 +90,7 @@ services:
       - default
   ### MySQL5.7 ################################################
   mysql57:
-    image: 'bitnami/mysql:5.7'
+    image: "bitnami/mysql:5.7"
     container_name: mysql57
     ports:
       - "3307:3306"
@@ -124,7 +124,7 @@ services:
   ### REDISWEBUI ################################################
   redis-webui:
     restart: always
-    image: 'erikdubbelboer/phpredisadmin:latest'
+    image: "erikdubbelboer/phpredisadmin:latest"
     container_name: redis-webui
     environment:
       - REDIS_1_HOST=${REDIS_WEBUI_CONNECT_HOST}
@@ -175,6 +175,7 @@ services:
     tty: true
     networks:
       - default
+  ### DEBIAN ################################################
   debian:
     image: debian:latest
     networks:

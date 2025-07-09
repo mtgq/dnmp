@@ -22,7 +22,6 @@ RUN mkdir -p $NVM_DIR && \
     && nvm use ${NODE_VERSION} \
     && nvm alias ${NODE_VERSION} \
     && npm cache clear --force \
-    && npm install -g pnpm
 
 # Wouldn't execute when added to the RUN statement in the above block
 # Source NVM when loading bash since ~/.profile isn't loaded on non-login shell
@@ -36,7 +35,7 @@ RUN echo "" >> ~/.bashrc && \
 
 ARG INSTALL_YARN=true
 ARG YARN_VERSION=latest
-ENV YARN_VERSION ${YARN_VERSION}
+ENV YARN_VERSION=${YARN_VERSION}
 
 RUN if [ ${INSTALL_YARN} = true ]; then \
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \

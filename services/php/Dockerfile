@@ -1,14 +1,13 @@
 ARG PHP_VERSION
 FROM laradock/php-fpm:latest-${PHP_VERSION}
 
-ARG TZ
 ARG PHP_VERSION
 ARG PHP_EXTENSIONS
 
-ENV TZ=${TZ}
-
 # Set Environment Variables
 ENV DEBIAN_FRONTEND noninteractive
+# Start as root
+USER root
 # always run apt update when start and after add new source list, then clean up at end.
 RUN set -xe; \
     apt-get update -yqq && \
@@ -38,6 +37,64 @@ RUN set -xe; \
       docker-php-ext-install zip && \
       php -m | grep -q 'zip'
 
+###########################################################################
+# Set Timezone
+###########################################################################
+ARG TZ=UTC
+ENV TZ=${TZ}
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+###########################################################################
+# Exif:
+###########################################################################
+ARG INSTALL_EXIF=true
+
+RUN if [ ${INSTALL_EXIF} = true ]; then \
+    # Enable Exif PHP extentions requirements
+    docker-php-ext-install exif \
+;fi
+###########################################################################
+# IMAP:
+###########################################################################
+ARG INSTALL_IMAP=true
+
+RUN if [ ${INSTALL_IMAP} = true ]; then \
+    apt-get install -yqq libc-client-dev libkrb5-dev && \
+    docker-php-ext-configure imap --with-kerberos --with-imap-ssl && \
+    docker-php-ext-install imap \
+;fi
+
+###########################################################################
+# Calendar:
+###########################################################################
+USER root
+
+ARG INSTALL_CALENDAR=true
+
+RUN if [ ${INSTALL_CALENDAR} = true ]; then \
+    docker-php-ext-configure calendar && \
+    docker-php-ext-install calendar \
+;fi
+###########################################################################
+# BZ2:
+###########################################################################
+ARG INSTALL_BZ2=true
+
+RUN if [ ${INSTALL_BZ2} = true ]; then \
+  apt-get -yqq install libbz2-dev; \
+  docker-php-ext-install bz2 \
+;fi
+###########################################################################
+# Calendar:
+###########################################################################
+USER root
+
+ARG INSTALL_CALENDAR=true
+
+RUN if [ ${INSTALL_CALENDAR} = true ]; then \
+    docker-php-ext-configure calendar && \
+    docker-php-ext-install calendar \
+;fi
 ###########################################################################
 # xlswriter:
 ###########################################################################
@@ -191,5 +248,13 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Configure non-root user.
 RUN groupmod -o -g 1000 www-data && usermod -o -u 1000 -g www-data www-data
 
+# Configure locale.
+ARG LOCALE=POSIX
+ENV LC_ALL ${LOCALE}
+
 # Set work directory
 WORKDIR /var/www
+
+CMD ["php-fpm"]
+
+EXPOSE 9000
