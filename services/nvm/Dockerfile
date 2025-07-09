@@ -1,7 +1,12 @@
 FROM debian:latest
 
 ARG NODE_VERSION
+ENV NODE_VERSION=${NODE_VERSION}
+ARG NPM_REGISTRY
+ENV NPM_REGISTRY=${NPM_REGISTRY}
 ENV NVM_DIR=/root/.nvm
+ARG NVM_NODEJS_ORG_MIRROR
+ENV NVM_NODEJS_ORG_MIRROR=${NVM_NODEJS_ORG_MIRROR}
 
 # Set Environment Variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -21,13 +26,28 @@ RUN mkdir -p $NVM_DIR && \
     && nvm install ${NODE_VERSION} \
     && nvm use ${NODE_VERSION} \
     && nvm alias ${NODE_VERSION} \
-    && npm cache clear --force \
+    && npm cache clear --force
 
+RUN if [ ${INSTALL_NODE} = true ]; then \
+    # Install nvm (A Node Version Manager)
+    mkdir -p $NVM_DIR && \
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash \
+        && . $NVM_DIR/nvm.sh \
+        && nvm install ${NODE_VERSION} \
+        && nvm use ${NODE_VERSION} \
+        && nvm alias ${NODE_VERSION} \
+        && npm cache clear --force \
+        && if [ ${NPM_REGISTRY} ]; then \
+        npm config set registry ${NPM_REGISTRY} \
+        ;fi \
+;fi
 # Wouldn't execute when added to the RUN statement in the above block
 # Source NVM when loading bash since ~/.profile isn't loaded on non-login shell
-RUN echo "" >> ~/.bashrc && \
+RUN if [ true = true ]; then \
+    echo "" >> ~/.bashrc && \
     echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc \
+;fi
 
 ###########################################################################
 # YARN:
