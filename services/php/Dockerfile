@@ -39,6 +39,21 @@ RUN set -xe; \
       php -m | grep -q 'zip'
 
 ###########################################################################
+# xlswriter:
+###########################################################################
+ARG INSTALL_XLSWRITER=true
+
+RUN set -eux; \
+    if [ ${INSTALL_XLSWRITER} = true ]; then \
+      if [ $(php -r "echo PHP_MAJOR_VERSION;") != "5" ]; then \
+          pecl install xlswriter  &&\
+          docker-php-ext-enable xlswriter &&\
+          php -m | grep -q 'xlswriter'; \
+      else \
+          echo "PHP Extension for xlswriter is not supported for PHP 5.0";\
+      fi \
+    ;fi
+###########################################################################
 # pcntl
 ###########################################################################
 ARG INSTALL_PCNTL=true
@@ -47,8 +62,20 @@ RUN if [ ${INSTALL_PCNTL} = true ]; then \
     docker-php-ext-install pcntl \
 ;fi
 ###########################################################################
+# Image optimizers:
+###########################################################################
+USER root
+
+ARG INSTALL_IMAGE_OPTIMIZERS=true
+
+RUN if [ ${INSTALL_IMAGE_OPTIMIZERS} = true ]; then \
+    apt-get install -yqq jpegoptim optipng pngquant gifsicle \
+;fi
+###########################################################################
 # ImageMagick:
 ###########################################################################
+USER root
+
 ARG INSTALL_IMAGEMAGICK=true
 ARG IMAGEMAGICK_VERSION=latest
 ENV IMAGEMAGICK_VERSION ${IMAGEMAGICK_VERSION}
@@ -85,7 +112,6 @@ RUN if [ ${INSTALL_IMAGEMAGICK} = true ]; then \
 ARG INSTALL_BCMATH=true
 
 RUN if [ ${INSTALL_BCMATH} = true ]; then \
-    # Install the bcmath extension
     docker-php-ext-install bcmath \
 ;fi
 ###########################################################################
@@ -117,6 +143,14 @@ RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
     && docker-php-ext-enable redis \
 ;fi
 ###########################################################################
+# Mysqli Modifications:
+###########################################################################
+ARG INSTALL_MYSQLI=true
+
+RUN if [ ${INSTALL_MYSQLI} = true ]; then \
+    docker-php-ext-install mysqli \
+;fi
+###########################################################################
 # Human Language and Character Encoding Support:
 ###########################################################################
 ARG INSTALL_INTL=true
@@ -126,21 +160,6 @@ RUN if [ ${INSTALL_INTL} = true ]; then \
     docker-php-ext-configure intl && \
     docker-php-ext-install intl \
 ;fi
-###########################################################################
-# xlswriter:
-###########################################################################
-ARG INSTALL_XLSWRITER=true
-
-RUN set -eux; \
-    if [ ${INSTALL_XLSWRITER} = true ]; then \
-      if [ $(php -r "echo PHP_MAJOR_VERSION;") != "5" ]; then \
-          pecl install xlswriter  &&\
-          docker-php-ext-enable xlswriter &&\
-          php -m | grep -q 'xlswriter'; \
-      else \
-          echo "PHP Extension for xlswriter is not supported for PHP 5.0";\
-      fi \
-    ;fi
 
 # Install PHP extensions
 RUN curl -sSLf -o /usr/local/bin/install-php-extensions https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions \
