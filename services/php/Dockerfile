@@ -44,57 +44,7 @@ ARG TZ=UTC
 ENV TZ=${TZ}
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-###########################################################################
-# Exif:
-###########################################################################
-ARG INSTALL_EXIF=true
 
-RUN if [ ${INSTALL_EXIF} = true ]; then \
-    # Enable Exif PHP extentions requirements
-    docker-php-ext-install exif \
-;fi
-###########################################################################
-# IMAP:
-###########################################################################
-ARG INSTALL_IMAP=true
-
-RUN if [ ${INSTALL_IMAP} = true ]; then \
-    apt-get install -yqq libc-client-dev libkrb5-dev && \
-    docker-php-ext-configure imap --with-kerberos --with-imap-ssl && \
-    docker-php-ext-install imap \
-;fi
-
-###########################################################################
-# Calendar:
-###########################################################################
-USER root
-
-ARG INSTALL_CALENDAR=true
-
-RUN if [ ${INSTALL_CALENDAR} = true ]; then \
-    docker-php-ext-configure calendar && \
-    docker-php-ext-install calendar \
-;fi
-###########################################################################
-# BZ2:
-###########################################################################
-ARG INSTALL_BZ2=true
-
-RUN if [ ${INSTALL_BZ2} = true ]; then \
-  apt-get -yqq install libbz2-dev; \
-  docker-php-ext-install bz2 \
-;fi
-###########################################################################
-# Calendar:
-###########################################################################
-USER root
-
-ARG INSTALL_CALENDAR=true
-
-RUN if [ ${INSTALL_CALENDAR} = true ]; then \
-    docker-php-ext-configure calendar && \
-    docker-php-ext-install calendar \
-;fi
 ###########################################################################
 # xlswriter:
 ###########################################################################
@@ -110,6 +60,7 @@ RUN set -eux; \
           echo "PHP Extension for xlswriter is not supported for PHP 5.0";\
       fi \
     ;fi
+
 ###########################################################################
 # pcntl
 ###########################################################################
@@ -118,6 +69,7 @@ ARG INSTALL_PCNTL=true
 RUN if [ ${INSTALL_PCNTL} = true ]; then \
     docker-php-ext-install pcntl \
 ;fi
+
 ###########################################################################
 # Image optimizers:
 ###########################################################################
@@ -128,6 +80,7 @@ ARG INSTALL_IMAGE_OPTIMIZERS=true
 RUN if [ ${INSTALL_IMAGE_OPTIMIZERS} = true ]; then \
     apt-get install -yqq jpegoptim optipng pngquant gifsicle \
 ;fi
+
 ###########################################################################
 # ImageMagick:
 ###########################################################################
@@ -163,6 +116,7 @@ RUN if [ ${INSTALL_IMAGEMAGICK} = true ]; then \
     docker-php-ext-enable imagick; \
     php -m | grep -q 'imagick' \
 ;fi
+
 ###########################################################################
 # bcmath:
 ###########################################################################
@@ -171,6 +125,7 @@ ARG INSTALL_BCMATH=true
 RUN if [ ${INSTALL_BCMATH} = true ]; then \
     docker-php-ext-install bcmath \
 ;fi
+
 ###########################################################################
 # GETTEXT:
 ###########################################################################
@@ -180,6 +135,7 @@ RUN if [ ${INSTALL_GETTEXT} = true ]; then \
     apt-get install -yqq zlib1g-dev libicu-dev g++ libpq-dev libssl-dev gettext && \
     docker-php-ext-install gettext \
 ;fi
+
 ###########################################################################
 # PHP REDIS EXTENSION
 ###########################################################################
@@ -199,6 +155,7 @@ RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable redis \
 ;fi
+
 ###########################################################################
 # Mysqli Modifications:
 ###########################################################################
@@ -207,6 +164,7 @@ ARG INSTALL_MYSQLI=true
 RUN if [ ${INSTALL_MYSQLI} = true ]; then \
     docker-php-ext-install mysqli \
 ;fi
+
 ###########################################################################
 # Human Language and Character Encoding Support:
 ###########################################################################
