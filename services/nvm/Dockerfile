@@ -15,8 +15,8 @@ RUN set -eux; \
     apt-get update; \
     apt-get upgrade -y; \
     apt-get install -y --no-install-recommends \
-            curl \
-            ca-certificates; \
+            ca-certificates \
+            curl; \
     rm -rf /var/lib/apt/lists/*
 
 # install nvm
