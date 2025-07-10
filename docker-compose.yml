@@ -90,7 +90,7 @@ services:
       - default
   ### MySQL5.7 ################################################
   mysql57:
-    image: "bitnami/mysql:5.7"
+    image: bitnami/mysql:5.7
     container_name: mysql57
     ports:
       - "3307:3306"
@@ -110,21 +110,22 @@ services:
       - default
   ### Redis ################################################
   redis:
-    build:
-      context: ./services/redis
+    image: bitnami/redis:latest
     container_name: redis
     volumes:
-      - ${DATA_PATH_HOST}/redis:/data
-    command: --requirepass ${REDIS_PASSWORD}
+      - ${DATA_PATH_HOST}/redis:/bitnami/redis/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
     ports:
-      - "${REDIS_PORT}:6379"
+      - "6379:6379"
     restart: always
     networks:
       - default
   ### REDISWEBUI ################################################
   redis-webui:
     restart: always
-    image: "erikdubbelboer/phpredisadmin:latest"
+    image: erikdubbelboer/phpredisadmin:latest
     container_name: redis-webui
     environment:
       - REDIS_1_HOST=${REDIS_WEBUI_CONNECT_HOST}
