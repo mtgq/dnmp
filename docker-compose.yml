@@ -3,10 +3,6 @@ services:
   nginx:
     build:
       context: ./services/nginx
-      args:
-        - http_proxy
-        - https_proxy
-        - no_proxy
     container_name: nginx
     ports:
       - "80:80"
@@ -124,23 +120,22 @@ services:
       - default
   ### REDISWEBUI ###########################################
   redis-webui:
-    restart: always
     image: erikdubbelboer/phpredisadmin:latest
     container_name: redis-webui
     environment:
       - REDIS_1_HOST=${REDIS_WEBUI_CONNECT_HOST}
-      - REDIS_1_PORT=${REDIS_WEBUI_CONNECT_PORT}
+      - REDIS_1_PORT=6379
       - REDIS_1_AUTH=${REDIS_PASSWORD}
       - TZ=${TZ}
-    networks:
-      - default
     ports:
       - "9987:80"
+    restart: always
+    networks:
+      - default
     depends_on:
       - redis
   ### NODE22 ###############################################
   node22:
-    restart: always
     build:
       context: ./services/nvm
       args:
@@ -155,13 +150,13 @@ services:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     ports:
       - "8001:8001"
+    restart: always
     stdin_open: true
     tty: true
     networks:
       - default
   ### NODE16 ###############################################
   node16:
-    restart: always
     build:
       context: ./services/nvm
       args:
@@ -176,6 +171,7 @@ services:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     ports:
       - "8080:8080"
+    restart: always
     stdin_open: true
     tty: true
     networks:
