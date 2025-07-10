@@ -21,7 +21,7 @@ services:
     restart: always
     networks:
       - default
-  ### PHP8.2 #########################################
+  ### PHP8.2 ###############################################
   php82:
     build:
       context: ./services/php
@@ -43,7 +43,7 @@ services:
     restart: always
     networks:
       - default
-  ### PHP7.4 #########################################
+  ### PHP7.4 ###############################################
   php74:
     platform: linux/amd64
     build:
@@ -66,7 +66,7 @@ services:
     restart: always
     networks:
       - default
-  ### PHP5.6 #########################################
+  ### PHP5.6 ###############################################
   php56:
     build:
       context: ./services/php
@@ -88,7 +88,7 @@ services:
     restart: always
     networks:
       - default
-  ### MySQL5.7 ################################################
+  ### MySQL5.7 #############################################
   mysql57:
     image: bitnami/mysql:5.7
     container_name: mysql57
@@ -122,7 +122,7 @@ services:
     restart: always
     networks:
       - default
-  ### REDISWEBUI ################################################
+  ### REDISWEBUI ###########################################
   redis-webui:
     restart: always
     image: erikdubbelboer/phpredisadmin:latest
@@ -138,7 +138,7 @@ services:
       - "9987:80"
     depends_on:
       - redis
-  ### NODE22 ################################################
+  ### NODE22 ###############################################
   node22:
     restart: always
     build:
@@ -159,7 +159,7 @@ services:
     tty: true
     networks:
       - default
-  ### NODE16 ################################################
+  ### NODE16 ###############################################
   node16:
     restart: always
     build:
@@ -180,7 +180,7 @@ services:
     tty: true
     networks:
       - default
-  ### DEBIAN ################################################
+  ### DEBIAN ###############################################
   debian:
     image: debian:latest
     networks:
