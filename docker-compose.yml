@@ -145,6 +145,8 @@ services:
       context: ./services/nvm
       args:
         - NODE_VERSION=22
+        - NPM_REGISTRY=${WORKSPACE_NPM_REGISTRY}
+        - NVM_NODEJS_ORG_MIRROR=${WORKSPACE_NVM_NODEJS_ORG_MIRROR}
         - http_proxy
         - https_proxy
         - no_proxy
@@ -164,6 +166,8 @@ services:
       context: ./services/nvm
       args:
         - NODE_VERSION=16
+        - NPM_REGISTRY=${WORKSPACE_NPM_REGISTRY}
+        - NVM_NODEJS_ORG_MIRROR=${WORKSPACE_NVM_NODEJS_ORG_MIRROR}
         - http_proxy
         - https_proxy
         - no_proxy

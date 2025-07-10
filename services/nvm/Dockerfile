@@ -11,13 +11,19 @@ ENV NVM_NODEJS_ORG_MIRROR=${NVM_NODEJS_ORG_MIRROR}
 # Set Environment Variables
 ENV DEBIAN_FRONTEND=noninteractive
 
+ARG CHANGE_SOURCE=true
+RUN if [ ${CHANGE_SOURCE} = true ]; then \
+    sed -i "s/deb.debian.org/mirrors.ustc.edu.cn/g" "/etc/apt/sources.list.d/debian.sources"; \
+  fi;
+
+# persistent / runtime deps
 RUN set -eux; \
-    apt-get update; \
-    apt-get upgrade -y; \
-    apt-get install -y --no-install-recommends \
-            ca-certificates \
-            curl; \
-    rm -rf /var/lib/apt/lists/*
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		ca-certificates \
+		curl \
+	; \
+	rm -rf /var/lib/apt/lists/*
 
 # install nvm
 RUN mkdir -p $NVM_DIR && \
