@@ -6,6 +6,11 @@
 * 设备：MacBook M4 Pro
 * 工具：OrbStack
 
+## 重建容器
+```
+docker-compose build --no-cache {container-name}
+```
+
 ## 感谢
 
 * [OrbStack](https://orbstack.dev/)
