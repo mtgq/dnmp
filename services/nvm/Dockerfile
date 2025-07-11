@@ -51,7 +51,5 @@ RUN if [ ${INSTALL_YARN} = true ]; then \
         curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version ${YARN_VERSION}; \
     fi && \
     echo "" >> ~/.bashrc && \
-    echo 'export PATH="$HOME/.yarn/bin:$PATH"' >> ~/.bashrc && \
-    export PATH="$HOME/.yarn/bin:$PATH" && \
-    yarn config set registry https://registry.npmmirror.com \
+    echo 'export PATH="$HOME/.yarn/bin:$PATH"' >> ~/.bashrc \
 ;fi

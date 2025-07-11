@@ -137,7 +137,7 @@ services:
   ### NODE22 ###############################################
   node22:
     build:
-      context: ./services/node
+      context: ./services/nvm
       args:
         - NODE_VERSION=22
         - INSTALL_PNPM=${NODE22_INSTALL_PNPM}
@@ -160,7 +160,7 @@ services:
   ### NODE16 ###############################################
   node16:
     build:
-      context: ./services/node
+      context: ./services/nvm
       args:
         - NODE_VERSION=16
         - INSTALL_PNPM=${NODE16_INSTALL_PNPM}
