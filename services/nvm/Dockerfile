@@ -53,3 +53,6 @@ RUN if [ ${INSTALL_YARN} = true ]; then \
     echo "" >> ~/.bashrc && \
     echo 'export PATH="$HOME/.yarn/bin:$PATH"' >> ~/.bashrc \
 ;fi
+
+# Set default work directory
+WORKDIR /var/www
