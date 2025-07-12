@@ -2,10 +2,13 @@ FROM debian:latest
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN sed -i 's/deb.debian.org/mirrors.huaweicloud.com/g' /etc/apt/sources.list.d/debian.sources && \
+RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources && \
     apt-get update && apt-get install -y ca-certificates curl --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
+###########################################################################
+# Node / NVM:
+###########################################################################
 ARG NODE_VERSION=node
 ENV NODE_VERSION=${NODE_VERSION}
 ENV NVM_DIR=/root/.nvm
@@ -20,10 +23,6 @@ RUN mkdir -p $NVM_DIR && \
     && nvm alias ${NODE_VERSION} \
     && npm cache clear --force \
     && npm config set registry ${NPM_REGISTRY}
-
-RUN echo "" >> ~/.bashrc && \
-    echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc
 
 ###########################################################################
 # PNPM:
