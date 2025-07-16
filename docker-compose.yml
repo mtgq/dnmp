@@ -9,11 +9,10 @@ services:
       - "443:443"
     volumes:
       - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ${NGINX_CONFD_DIR}:/etc/nginx/conf.d
-      - ${NGINX_CONF_FILE}:/etc/nginx/nginx.conf
-      - ${NGINX_FASTCGI_PHP_CONF}:/etc/nginx/fastcgi-php.conf
-      - ${NGINX_FASTCGI_PARAMS}:/etc/nginx/fastcgi_params
-      - ${NGINX_LOG_DIR}:/var/log/nginx
+      - ${NGINX_CONF_DIR}:${NGINX_BASE_DIR}/conf/server_blocks
+      - ${NGINX_FASTCGI_PHP_CONF}:${NGINX_BASE_DIR}/conf/fastcgi-php.conf
+      - ${NGINX_FASTCGI_PARAMS}:${NGINX_BASE_DIR}/conf/fastcgi_params
+      - ${NGINX_LOG_DIR}:${NGINX_BASE_DIR}/logs
     restart: always
     networks:
       - default
