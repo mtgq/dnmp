@@ -93,13 +93,12 @@ services:
       - ${DATA_PATH_HOST}/mysql57:/bitnami/mysql/data
       - ${MYSQL57_LOG_DIR}:/bitnami/mysql/logs
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_CHARACTER_SET=utf8mb4
       - MYSQL_COLLATE=utf8mb4_general_ci
       - MYSQL_SQL_MODE="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
       - MYSQL_ENABLE_SLOW_QUERY=1
       - MYSQL_LONG_QUERY_TIME=3
-      - MYSQL_EXTRA_FLAGS=--default-time-zone=+8:00
     restart: always
     networks:
       - default
