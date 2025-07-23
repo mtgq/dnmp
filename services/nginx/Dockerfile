@@ -1,12 +1,13 @@
-FROM nginx:alpine
+FROM nginx:latest
 
-ARG CHANGE_SOURCE=true
-RUN if [ ${CHANGE_SOURCE} = true ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/' /etc/apk/repositories \
-;fi
+RUN sed -i "s|deb.debian.org|mirrors.ustc.edu.cn|g" /etc/apt/sources.list.d/debian.sources
 
-RUN apk update \
-    && apk upgrade \
-    && apk add --no-cache bash curl
+# Install required packages
+RUN export option="--no-install-recommends -y" \
+    && apt-get $option update \
+    && apt-get $option install curl
+
+# Clean up the package list to reduce image size
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www
