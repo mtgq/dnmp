@@ -2,9 +2,13 @@ FROM debian:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources && \
-    apt-get update && apt-get install -y ca-certificates curl --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+# Set debian mirror
+RUN sed -i "s|deb.debian.org|mirrors.ustc.edu.cn|g" /etc/apt/sources.list.d/debian.sources
+
+# Install required packages
+RUN export option="--no-install-recommends -y" \
+    && apt-get $option update \
+    && apt-get $option install ca-certificates curl
 
 ###########################################################################
 # Node / NVM:
